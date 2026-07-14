@@ -49,4 +49,4 @@ def save_parsed_documents(documents: dict, parsed_dir: str = "data/parsed") -> N
         with open(output_path, "w", encoding="utf-8") as file:    # opens file and writes cleaned text
             file.write(clean)
 
-        print(f"✅Saved: {output_path}")                          # print information
+        print(f"✅ Saved: {output_path}")                         # message
