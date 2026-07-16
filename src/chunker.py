@@ -8,8 +8,8 @@ def split_text_by_tokens(text: str, chunk_size: int = 200, overlap: int = 50, se
 
     Args:
     - text: raw text
-    - chunk_size: number of words in each chunk
-    - overlap: overlap in words between adjacent chunks
+    - chunk_size: number of words in each chunk (default = 200)
+    - overlap: overlap in words between adjacent chunks (default = 50)
     - separator: default separator (space) for splitting words
 
     Returns:
@@ -37,8 +37,8 @@ def chunk_documents(documents: Dict[str, str], chunk_size: int = 200, overlap: i
 
     Args:
     - documents: dictionary {filename: text}
-    - chunk_size: number of words in each chunk
-    - overlap: overlap in words between adjacent chunks
+    - chunk_size: number of words in each chunk (default = 200)
+    - overlap: overlap in words between adjacent chunks (default = 50)
     
     Returns:
     - list of dictionaries:
