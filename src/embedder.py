@@ -35,5 +35,3 @@ def embed_single(text: str) -> np.ndarray:
     model = get_embedding_model()                                       # loading model
 
     return model.encode([text], convert_to_numpy=True)[0]               # returning embedding
-
-
