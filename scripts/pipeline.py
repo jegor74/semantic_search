@@ -3,14 +3,16 @@ from pathlib import Path
 
 sys.path.append(str(Path(__file__).parent.parent))     # adds project's root directory to Python seatching path
 
-from src.data_loader import load_text_files, save_parsed_documents
+from src.data_loader import load_text_files, load_pdf_files, save_parsed_documents
 from src.chunker import chunk_documents, save_chunks_to_file
 from src.embedder import embed_single
 from src.indexer import create_index, save_index
 import numpy as np
 
 
-files = load_text_files()
+files = {}                       # for loading .txt and .pdf files at the same time
+files.update(load_text_files())
+files.update(load_pdf_files())
 save_parsed_documents(files)
 print("✅ Files loaded, cleaned and saved.")
 
