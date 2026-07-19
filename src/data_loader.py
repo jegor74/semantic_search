@@ -16,8 +16,13 @@ def load_text_files(raw_dir: str = "data/raw") -> dict:
         raise FileNotFoundError(f"Directory {raw_dir} not found. Make it and put .txt files there.")
 
     for file_path in raw_path.glob("*.txt"):                       # reading each file's path and opening it with UTF-8 encoding
-        with open(file_path, "r", encoding="utf-8") as file:
-            text = file.read()
+        try:
+            with open(file_path, "r", encoding="utf-8") as file:   # opening txt file
+                text = file.read()                                 # if file can't be opened, raise exception and skip this file
+        except Exception as e:
+            print(f"⚠️ Skipping {file_path.name}: {e}")
+            continue
+
         documents[file_path.name] = text                           # add file's text to dictionary
 
     return documents
