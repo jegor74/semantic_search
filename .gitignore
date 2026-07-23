@@ -219,6 +219,9 @@ __marimo__/
 
 # Directories
 data/
+notebooks/
+docker/
+tests/
 
 # Other
 *.faiss
