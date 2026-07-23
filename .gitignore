@@ -219,3 +219,9 @@ __marimo__/
 
 # Directories
 data/
+
+# Other
+*.faiss
+*.npy
+*.json
+*.pyc
