@@ -1,5 +1,9 @@
 import json
+import nltk
 from typing import List, Dict, Any
+
+
+nltk.download("punkt")
 
 
 def split_text_by_tokens(text: str, chunk_size: int = 200, overlap: int = 50, separator: str = " ") -> List[str]:
@@ -31,6 +35,62 @@ def split_text_by_tokens(text: str, chunk_size: int = 200, overlap: int = 50, se
     return chunks
 
 
+def split_text_by_sentences(text: str, chunk_size: int = 200, overlap: int = 50) -> List[str]:
+    """
+    Splits text into chunks by sentences, trying to reach chunk_size words.
+    Overlap is applied at the sentence level.
+
+    Args:
+    - text: raw text
+    - chunk_size: number of words in each chunk (default = 200)
+    - overlap: overlap in words between adjacent chunks (default = 50)
+
+    Returns:
+    - list of text chunks (each chunk is a string)
+    """
+
+    sentences = nltk.sent_tokenize(text)                          # splitting text by sentences
+
+    if not sentences:                                             # if text is empty return empty array
+        return []
+
+    chunks = []
+    current_chunk = []
+    current_word_count = 0
+
+    for sent in sentences:                                        # groupping sentences to chunks
+        sent_word_count = len(sent.split())
+
+        if current_word_count + sent_word_count <= chunk_size:    # appending sentence if current chunk + new sentence <= chunk_size
+            current_chunk.append(sent)
+            current_word_count += sent_word_count
+        else:
+            if current_chunk:                                     # saving current chunk if it's not empty
+                chunks.append(" ".join(current_chunk))
+
+            overlap_words = 0                                     # starting new chunk with overlap
+            overlap_sentences = []                                # taking last sentences from previous chunk for making overlap
+
+            for prev_sent in reversed(current_chunk):             # going from the end of current chunk and assemly sentence while not gaining overlap
+                prev_word_count = len(prev_sent.split())
+
+                if overlap_words + prev_word_count <= overlap:    # inserting previous sentence if overlap words + previous sentence <= overlap
+                    overlap_sentences.insert(0, prev_sent)
+                    overlap_words += prev_word_count
+                else:
+                    break                                         # stop adding sentences once overlap limit is reached
+
+            current_chunk = overlap_sentences + [sent]            # new chunk starts from overlap sentences + current sentence
+            current_word_count = overlap_words + sent_word_count
+
+
+    if current_chunk:                                             # appending last chunk if it's not empty
+        chunks.append(" ".join(current_chunk))
+
+
+    return chunks
+
+
 def chunk_documents(documents: Dict[str, str], chunk_size: int = 200, overlap: int = 50) -> List[Dict[str, Any]]:
     """
     Converts a {filename: text} dictionary into a list of chunks with metadata.
@@ -54,7 +114,7 @@ def chunk_documents(documents: Dict[str, str], chunk_size: int = 200, overlap: i
     all_chunks = []                                                          # list of dictionaries
 
     for filename, text in documents.items():                                 # iterate over the documents
-        chunks = split_text_by_tokens(text, chunk_size, overlap)             # splitting the text into chunks 
+        chunks = split_text_by_sentences(text, chunk_size, overlap)          # splitting the text into chunks 
         
         for idx, chunk_text in enumerate(chunks):                            # iterate over chunks with enumeration
             all_chunks.append({                                              # appending a dictionary with chunk metadata to the list
