@@ -3,7 +3,7 @@ import nltk
 from typing import List, Dict, Any
 
 
-nltk.download("punkt")
+nltk.download("punkt_tab")
 
 
 def split_text_by_tokens(text: str, chunk_size: int = 200, overlap: int = 50, separator: str = " ") -> List[str]:
