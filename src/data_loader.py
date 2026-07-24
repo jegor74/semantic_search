@@ -62,14 +62,23 @@ def load_pdf_files(raw_dir: str = "data/raw") -> dict:
 
 def clean_text(text: str) -> str:
     """
-    Based text cleaner: removing extra spaces and special symbols.
-    Returns cleaned text.
+    Cleans text: removes extra spaces, special characters, fixes line breaks.
+
+    Args:
+    - text: raw text
+
+    Returns:
+    - cleaned text
     """
     
-    text = re.sub(r"\s+", " ", text)              # removing multiple spaces (\s, \t) and line breaks(\n)
-    text = re.sub(r"[^\w\s.,!?-]", "", text)      # removing special symbols (except letters, numbers, spaces and .,!?-)
+    text = re.sub(r"(\w+)-\s*(\w+)", r"\1\2", text)      # removing soft hyphens and line breaks from PDF
+    text = re.sub(r"(?<!\n)\n(?!\n)", " ", text)         # removing lonely \n (inside paragraphs)
+    text = re.sub(r"[^\w\s.,!?()%+*/@=#&-]", "", text)   # removing disallowed characters, keeping only safe punctuation and math symbols
+    text = re.sub(r"\s+", " ", text)                     # removing multiple spaces (\s, \t) and line breaks(\n)
+    text = re.sub(r"\s+([.,!?;:])", r"\1", text)         # removing space before punctuation
 
-    return text.strip()                           # returning text without spaces at start and end of the string
+
+    return text.strip()                                  # returning cleaned text without spaces at start and end of the string
 
 
 def save_parsed_documents(documents: dict, parsed_dir: str = "data/parsed") -> None:
