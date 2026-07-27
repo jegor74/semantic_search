@@ -1,7 +1,4 @@
 import requests
-import json
-import sys
-from pathlib import Path
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
@@ -9,6 +6,33 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 # ==== Configuration ====
 BOT_TOKEN = "8867854461:AAGc9YEoQL5zKBWX_L-MuBN2LNDbPNVPXtU" 
 API_URL = "http://127.0.0.1:8000/search" 
+
+
+def truncate_by_sentence(text: str, max_len: int = 400) -> str:
+    """
+    Truncates text by sentences, so text ends with (. ! ? ; : ... ?!).
+    Or text ends with ... if truncate was forced.
+
+    Args:
+    - text: model's answer
+    - max_len: max length of text (default = 400)
+
+    Returns:
+    - truncated string ending with a sentence delimiter or original text if it's shorter than max_len.
+    """
+
+    if len(text) <= max_len:                                    # returning text if it's already short enough
+        return text
+
+    truncate_pos = max_len                                      # start truncation at max_len
+    for sep in [". ", "! ", "? ", "; ", ": ", "... ", "?! "]:
+        pos = text.rfind(sep, 0, max_len)                       # search for separator from the end, up to max_len
+        if pos != -1:                                           # if found
+            truncate_pos = min(truncate_pos, pos + len(sep))    # cut after the separator and the trailing space
+    
+    if truncate_pos == max_len:                                 # forced truncating if there are no separators found
+        return text[:max_len].strip() + "..."
+    return text[:truncate_pos].strip()                          # cut the text at the found position, remove trailing spaces
 
 
 def search_documents(query: str, top_k: int = 3) -> list:
@@ -84,7 +108,7 @@ async def handle_message(update: Update, _context: ContextTypes.DEFAULT_TYPE) ->
         source = chunk.get("source", "Неизвестный источник")
         distance = chunk.get("distance", 0)
         if len(text) > 400:                                                          # truncating long chunks for readability
-            text = text[:400] + "..."
+            text = truncate_by_sentence(text, 400)
         message += f"{i}. *{source}* (сходство: {distance * 100:.1f}% )\n"
         message += f"   {text}\n\n"
 
