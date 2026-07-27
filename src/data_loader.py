@@ -72,6 +72,9 @@ def clean_text(text: str) -> str:
     """
     
     text = text.replace("\xa0", " ")                     # replacing non-breaking spaces to default spaces
+    text = text.replace("\u00ad", "")                    # removing soft hyphen 
+    text = text.replace("\u200b", "")                    # removing null spaces (for higher quality of embeddings)
+
     text = re.sub(r"(\w+)-\s*(\w+)", r"\1\2", text)      # removing soft hyphens and line breaks from PDF
     text = re.sub(r"(?<!\n)\n(?!\n)", " ", text)         # removing lonely \n (inside paragraphs)
     text = re.sub(r"[^\w\s.,!?()%+*/@=#&-]", "", text)   # removing disallowed characters, keeping only safe punctuation and math symbols
