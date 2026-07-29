@@ -219,6 +219,7 @@ __marimo__/
 
 # Directories
 data/
+models/
 notebooks/
 docker/
 tests/
