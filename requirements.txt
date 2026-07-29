@@ -6,3 +6,9 @@ faiss-gpu
 pymupdf
 python-dotenv
 pytest
+nltk
+datasets
+accelerate
+python-telegram-bot
+requests
+pymupdf4llm
