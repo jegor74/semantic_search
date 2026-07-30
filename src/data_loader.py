@@ -121,6 +121,8 @@ def clean_text(text: str) -> str:
     text = re.sub(r"[^\w\s.,!?()%+*/@=#&-]", "", text)   # removing disallowed characters, keeping only safe punctuation and math symbols
     text = re.sub(r"\s+", " ", text)                     # removing multiple spaces (\s, \t) and line breaks(\n)
     text = re.sub(r"\s+([.,!?;:])", r"\1", text)         # removing space before punctuation
+    text = re.sub(r"<[^>]+>", "", text)                  # removing everything that is similar with HTML tags
+    text = re.sub(r"[-]{4,}", "", text)                  # removing sequences of 4 and more hyphens
 
 
     return text.strip()                                  # returning cleaned text without spaces at start and end of the string
