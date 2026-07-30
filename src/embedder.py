@@ -1,5 +1,6 @@
-from sentence_transformers import SentenceTransformer
 import numpy as np
+from sentence_transformers import SentenceTransformer
+
 
 _MODEL = None
 
@@ -16,7 +17,8 @@ def get_embedding_model() -> SentenceTransformer:                         # maki
 
     if _MODEL is None:
         _MODEL = SentenceTransformer("intfloat/multilingual-e5-small")    # loading multilingual model (for russian and english books)
-        # _MODEL = SentenceTransformer("models/finetuned/")               # loading finetuned multilingual model
+        # _MODEL = SentenceTransformer("models/finetuned/")               # loading finetuned multilingual model (still useless)
+
         # print(_MODEL.get_embedding_dimension())                         # checking embeddings' dimension (384)
 
     return _MODEL
