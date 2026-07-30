@@ -13,14 +13,14 @@ with open("data/finetune/train_data.csv", "r", encoding="utf-8") as file:
                            "negative": row["negative"]})
 dataset = Dataset.from_list(train_data)
 
-model = SentenceTransformer("intfloat/multilingual-e5-small")                     # loading model
+model = SentenceTransformer("intfloat/multilingual-e5-small")                    # loading model
 
 args = SentenceTransformerTrainingArguments(                                     # setting arguments
     output_dir="models/finetuned",
-    num_train_epochs=4,
+    num_train_epochs=3,
     per_device_train_batch_size=8,
-    learning_rate=1e-6,
-    warmup_steps=0.1
+    learning_rate=1e-5,
+    warmup_steps=100
 )
 
 
