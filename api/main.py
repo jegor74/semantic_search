@@ -8,7 +8,7 @@ from typing import AsyncGenerator, Dict, List, Union
 
 sys.path.append(str(Path(__file__).parent.parent))       # adding root of project to the path
 
-from src.embedder import embed_single
+from src.embedder import embed_query
 from src.indexer import load_index, search
 
 
@@ -57,7 +57,7 @@ async def search_endpoint(request: SearchRequest) -> SearchResponse:
     if index is None or chunks is None:
         raise HTTPException(status_code=503, detail="The model is not load")
     
-    query_vector = embed_single(request.query)                            # generating embedding of request
+    query_vector = embed_query(request.query)                             # generating embedding of request
     distances, indices = search(query_vector, index, k=request.top_k)     # searching in index
     
     results = []                                                          # answer forming
