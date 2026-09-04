@@ -103,44 +103,105 @@ def load_pdf_files_old(raw_dir: str = "data/raw") -> dict:
 
 def clean_text(text: str) -> str:
     """
-    Cleans text: removes extra spaces, special characters, fixes line breaks.
+    Cleans extracted text while preserving paragraph structure.
 
     Args:
-    - text: raw text
+    - text: raw extracted text.
 
     Returns:
-    - cleaned text
+    - cleaned text.
     """
-    
-    text = text.replace("\xa0", " ")                     # replacing non-breaking spaces to default spaces
-    text = text.replace("\u00ad", "")                    # removing soft hyphen 
-    text = text.replace("\u200b", "")                    # removing null spaces (for higher quality of embeddings)
 
-    text = re.sub(r"(\w+)-\s*(\w+)", r"\1\2", text)      # removing soft hyphens and line breaks from PDF
-    text = re.sub(r"(?<!\n)\n(?!\n)", " ", text)         # removing lonely \n (inside paragraphs)
-    text = re.sub(r"[^\w\s.,!?()%+*/@=#&-]", "", text)   # removing disallowed characters, keeping only safe punctuation and math symbols
-    text = re.sub(r"\s+", " ", text)                     # removing multiple spaces (\s, \t) and line breaks(\n)
-    text = re.sub(r"\s+([.,!?;:])", r"\1", text)         # removing space before punctuation
-    text = re.sub(r"<[^>]+>", "", text)                  # removing everything that is similar with HTML tags
-    text = re.sub(r"[-]{4,}", "", text)                  # removing sequences of 4 and more hyphens
+    text = text.replace("\r\n", "\n")                         # normalizing Windows line breaks
+    text = text.replace("\r", "\n")                           # normalizing old-style line breaks
+    text = text.replace("\xa0", " ")                          # replacing non-breaking spaces
+    text = text.replace("\u00ad", "")                         # removing soft hyphens
+    text = text.replace("\u200b", "")                         # removing zero-width spaces
+
+    text = re.sub(
+        r"<!--.*?-->",
+        " ",
+        text,
+        flags=re.DOTALL                                      # removing multiline HTML comments
+    )
+    text = re.sub(
+        r"<br\s*/?>",
+        " ",
+        text,
+        flags=re.IGNORECASE                                  # replacing HTML line breaks
+    )
+    text = re.sub(r"<[^>]+>", " ", text)                     # removing remaining HTML tags
+
+    text = re.sub(
+        r"(?<=\w)-[ \t]*\n[ \t]*(?=\w)",
+        "",
+        text                                                 # joining words broken across lines
+    )
+
+    text = re.sub(
+        r"(?<!\n)\n(?!\n)",
+        " ",
+        text                                                 # replacing single line breaks
+    )
+    text = re.sub(r"[ \t]+", " ", text)                      # removing repeated horizontal spaces
+    text = re.sub(r" *\n{2,} *", "\n\n", text)               # preserving paragraph boundaries
+    text = re.sub(r" +([.,!?;:])", r"\1", text)              # removing spaces before punctuation
+    text = re.sub(r"-{4,}", "", text)                        # removing long hyphen sequences
+
+    return text.strip()
 
 
-    return text.strip()                                  # returning cleaned text without spaces at start and end of the string
-
-
-def save_parsed_documents(documents: dict, parsed_dir: str = "data/parsed") -> None:
+def clean_documents(documents: dict[str, str]) -> dict[str, str]:
     """
-    Saves cleaned texts to the parsed_dir directory with the same file name.
+    Cleans loaded documents and removes empty results.
+
+    Args:
+    - documents: dictionary containing filenames and raw texts.
+
+    Returns:
+    - dictionary containing filenames and cleaned texts.
+    """
+
+    cleaned_documents = {}
+
+    for filename, text in documents.items():
+        cleaned_text = clean_text(text)                       # cleaning current document
+
+        if not cleaned_text:
+            print(f"⚠️ Skipping empty document: {filename}")
+            continue
+
+        cleaned_documents[filename] = cleaned_text             # saving cleaned document in memory
+
+    return cleaned_documents
+
+
+def save_parsed_documents(documents: dict[str, str], parsed_dir: str = "data/parsed") -> None:
+    """
+    Saves cleaned documents to the parsed directory.
+
+    Args:
+    - documents: dictionary containing filenames and cleaned texts.
+    - parsed_dir: directory for processed documents.
     """
 
     parsed_path = Path(parsed_dir)
-    parsed_path.mkdir(parents=True, exist_ok=True)                # making directory with all intermediate directories, if they're not exist.
+    parsed_path.mkdir(
+        parents=True,
+        exist_ok=True                                          # creating output directory
+    )
 
-    for filename, text in documents.items():                      # reading every file in dictionary
-        clean = clean_text(text)                                  # cleaning file's text
-        output_path = parsed_path / filename                      # making path to new file
-        
-        with open(output_path, "w", encoding="utf-8") as file:    # opens file and writes cleaned text
-            file.write(clean)
+    for filename, text in documents.items():
+        source_path = Path(filename)                           # getting original filename
 
-        print(f"✅ Saved: {output_path}")                         # message
+        if source_path.suffix.lower() == ".pdf":
+            output_name = f"{source_path.stem}.md"             # saving parsed PDF as Markdown
+        else:
+            output_name = source_path.name                     # preserving text filename
+
+        output_path = parsed_path / output_name
+
+        with open(output_path, "w", encoding="utf-8") as file:
+            file.write(text)                                   # writing already cleaned text
+
+        print(f"✅ Saved: {output_path}")
