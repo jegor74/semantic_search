@@ -229,3 +229,8 @@ tests/
 *.npy
 *.json
 *.pyc
+
+# Secrets
+.env
+.env.*
+!.env.example

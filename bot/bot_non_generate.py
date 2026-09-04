@@ -1,11 +1,13 @@
 import requests
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
+from src.config import API_URL, BOT_TOKEN
 
 
-# ==== Configuration ====
-BOT_TOKEN = "8867854461:AAGc9YEoQL5zKBWX_L-MuBN2LNDbPNVPXtU" 
-API_URL = "http://127.0.0.1:8000/search" 
+if not BOT_TOKEN:
+    raise RuntimeError(
+        "BOT_TOKEN is not set. Add it to the root .env file."
+    )
 
 
 def truncate_by_sentence(text: str, max_len: int = 400) -> str:
