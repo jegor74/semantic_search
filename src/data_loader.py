@@ -67,6 +67,61 @@ def load_pdf_files(raw_dir: str = "data/raw") -> dict:
     return documents
 
 
+def load_pdf_pages(file_path: str | Path, pages: list[int] | None = None) -> list[dict]:
+    """
+    Extracts Markdown text and source metadata from PDF pages.
+
+    Args:
+    - file_path: path to a PDF document.
+    - pages: zero-based page indices; None selects all pages.
+
+    Returns:
+    - list of records containing source, page, and raw text.
+    - output page numbers are one-based.
+    """
+
+    pdf_path = Path(file_path)                        # normalizing input path
+
+    if not pdf_path.is_file():
+        raise FileNotFoundError(f"PDF file not found: {pdf_path}")
+
+    page_chunks = pymupdf4llm.to_markdown(
+        str(pdf_path),
+        pages=pages,                                  # selecting requested PDF pages
+        page_chunks=True                              # preserving page boundaries
+    )
+
+    if not isinstance(page_chunks, list):
+        raise TypeError(
+            "Expected a list of page records from PyMuPDF4LLM."
+        )
+
+    records = []
+
+    for page_chunk in page_chunks:
+        metadata = page_chunk["metadata"]             # reading source page metadata
+        page_number = metadata["page_number"]         # using original PDF page number
+        text = page_chunk["text"]                     # keeping raw extracted Markdown
+
+        if type(page_number) is not int or page_number < 1:
+            raise ValueError(
+                f"Invalid page number in {pdf_path.name}: {page_number!r}"
+            )
+
+        if not isinstance(text, str):
+            raise TypeError(
+                f"Expected text on page {page_number} of {pdf_path.name}."
+            )
+
+        records.append({
+            "source": pdf_path.name,
+            "page": page_number,
+            "text": text
+        })
+
+    return records
+
+
 def load_pdf_files_old(raw_dir: str = "data/raw") -> dict:
     """
     Loads all .pdf files from raw_dir directory.
