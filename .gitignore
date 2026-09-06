@@ -222,7 +222,6 @@ data/
 models/
 notebooks/
 docker/
-tests/
 
 # Other
 *.faiss
