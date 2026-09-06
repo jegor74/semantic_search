@@ -1,4 +1,5 @@
 import re
+import json
 import pymupdf
 import pymupdf4llm
 from pathlib import Path
@@ -206,6 +207,35 @@ def clean_text(text: str) -> str:
     return text.strip()
 
 
+def clean_pages(pages: list[dict]) -> list[dict]:
+    """
+    Cleans page text while preserving source metadata.
+
+    Args:
+    - pages: records containing source, page, and raw text.
+
+    Returns:
+    - new records containing cleaned, non-empty text.
+    - original records remain unchanged.
+    """
+
+    cleaned_pages = []
+
+    for page in pages:
+        cleaned_text = clean_text(page["text"])      # cleaning current page text
+
+        if not cleaned_text:
+            continue                                 # skipping empty pages
+
+        cleaned_page = {
+            **page,                                  # copying existing metadata
+            "text": cleaned_text                     # replacing only the text
+        }
+        cleaned_pages.append(cleaned_page)
+
+    return cleaned_pages
+
+
 def clean_documents(documents: dict[str, str]) -> dict[str, str]:
     """
     Cleans loaded documents and removes empty results.
@@ -260,3 +290,32 @@ def save_parsed_documents(documents: dict[str, str], parsed_dir: str = "data/par
             file.write(text)                                   # writing already cleaned text
 
         print(f"✅ Saved: {output_path}")
+
+
+def save_parsed_pages(
+    pages: list[dict],
+    output_file: str | Path = "data/parsed/pages.json"
+) -> None:
+    """
+    Saves cleaned page records and their metadata as JSON.
+
+    Args:
+    - pages: cleaned page records.
+    - output_file: destination JSON file.
+    """
+
+    output_path = Path(output_file)                   # normalizing destination path
+    output_path.parent.mkdir(
+        parents=True,
+        exist_ok=True                                 # creating parent directories
+    )
+
+    with output_path.open("w", encoding="utf-8") as file:
+        json.dump(
+            pages,
+            file,
+            ensure_ascii=False,                       # preserving readable Unicode
+            indent=2                                  # formatting records for inspection
+        )
+
+    print(f"✅ Saved {len(pages)} page records: {output_path}")
