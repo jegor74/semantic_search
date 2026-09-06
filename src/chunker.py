@@ -128,6 +128,54 @@ def chunk_documents(documents: Dict[str, str], chunk_size: int = 200, overlap: i
     return all_chunks
 
 
+def chunk_pages(pages: List[Dict[str, Any]], chunk_size: int = 200, overlap: int = 50) -> List[Dict[str, Any]]:
+    """
+    Splits page texts into chunks while preserving source and page metadata.
+    "chunk_id" starts at 0 for each page.
+    Overlap is applied only within each page.
+
+    Args:
+    - pages: list of page records containing source, page, and text.
+    - chunk_size: number of words in each chunk (default = 200)
+    - overlap: overlap in words between adjacent chunks (default = 50)
+    
+    Returns:
+    - list of dictionaries:
+        {
+          "source": "gml.pdf",
+          "page": 37,
+          "chunk_id": 0,
+          "text": "Text of the chunk..."
+        }
+
+    Raises:
+    - ValueError if "chunk_size" <= 0 or "overlap" < 0 or "overlap" >= "chunk_size"
+    """
+
+    if chunk_size <= 0 or overlap < 0 or overlap >= chunk_size:
+        raise ValueError("Wrong values of the chunk_size or overlap")
+
+    all_chunks = []
+
+    for page in pages:                                                          # iterating over pages
+
+        if not page["text"].strip():                                            # skipping empty pages
+            continue
+
+        chunks = split_text_by_sentences(page["text"], chunk_size, overlap)     # splitting the page into chunks
+
+        for chunk_id, chunk_text in enumerate(chunks):
+            page_chunk = {}
+
+            page_chunk["source"] = page["source"]                               # adding source
+            page_chunk["page"] = page["page"]                                   # adding page
+            page_chunk["chunk_id"] = chunk_id                                   # adding chunk id
+            page_chunk["text"] = chunk_text                                     # storing chunk text
+            all_chunks.append(page_chunk)                                       # appending the chunk to the result list
+
+    return all_chunks
+        
+
 def save_chunks_to_file(chunks: List[Dict[str, Any]], output_file: str = "data/metadata/chunks.json") -> None:
     """
     Saves a list of chunks to a JSON file for later use.
